@@ -10,10 +10,11 @@ pyspark>=3.4.0
 sentencepiece
 sentence_transformers
 scikit-learn
-tensorflow-cpu
+tensorflow==2.15.0 # change according to cuda version
+tf-keras==2.15.0 # change according to cuda version
 transformers
 tritonclient
---extra-index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://download.pytorch.org/whl/cu121 # change according to cuda version
 torch
 torchtext
 torchvision
