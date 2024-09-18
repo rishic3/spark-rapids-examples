@@ -13,6 +13,9 @@ scikit-learn
 tensorflow==2.15.0 # change according to cuda version
 tf-keras==2.15.0 # change according to cuda version
 transformers
+datasets
+evaluate
+accelerate
 tritonclient
 --extra-index-url https://download.pytorch.org/whl/cu121 # change according to cuda version
 torch
