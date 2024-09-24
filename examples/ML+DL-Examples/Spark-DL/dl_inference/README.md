@@ -36,9 +36,7 @@ All notebooks have been saved with sample outputs for quick browsing.
 
 If you want to run the notebooks yourself, please follow these instructions.
 
-**Notes**: 
-- for demonstration purposes, these examples just use a local Spark Standalone cluster with a single executor, but you should be able to run them on any distributed Spark cluster.   
-- ```requirements.txt``` assumes CUDA version 12.2; refer to the compatibility tables [for Pytorch](https://pytorch.org/get-started/locally/) and [for Tensorflow](https://www.tensorflow.org/install/source#gpu) and replace the version numbers in the requirements file appropriately.  
+**Note**: for demonstration purposes, these examples just use a local Spark Standalone cluster with a single executor, but you should be able to run them on any distributed Spark cluster.    
 ```
 # install dependencies for example notebooks
 pip install -r requirements.txt
