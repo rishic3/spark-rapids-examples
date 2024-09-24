@@ -51,7 +51,7 @@ conda activate spark-dl-tensorflow
 pip install -r requirements.txt
 
 # for pytorch users:
-pip install torch==2.4.0 torchvision==0.19.0 torchtext==0.18.0 --index-url https://download.pytorch.org/whl/cu121
+pip install torch==2.4.0 torchvision==0.19.0 --index-url https://download.pytorch.org/whl/cu121
 # for tensorflow users:
 pip install tensorflow[and-cuda]
 
