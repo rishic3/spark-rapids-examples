@@ -10,8 +10,8 @@ pyspark>=3.4.0
 sentencepiece
 sentence_transformers
 scikit-learn
-tensorflow==2.15.0 # change according to cuda version
-tf-keras==2.15.0 # change according to cuda version
+tensorflow[and-cuda]
+pydot
 transformers
 datasets
 evaluate
