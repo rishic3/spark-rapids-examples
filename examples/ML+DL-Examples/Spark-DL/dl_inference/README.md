@@ -28,7 +28,7 @@ df = spark.read.parquet("mnist_data")
 predictions = df.withColumn("preds", mnist("data")).collect()
 ```
 
-In this simple case, the `predict_batch_fn` will use TensorFlow APIs to load the model and return a simple `predict` function which operates on numpy arrays.  The `predict_batch_udf` will automatically convert the Spark DataFrame columns to the expected numpy inputs.
+In this simple case, the `predict_batch_fn` will use TensorFlow APIs to load the model and return a simple `predict` function which operates on numpy arrays.  The `predict_batch_udf` will automatically convert the Spark DataFrame columns to the expected numpy inputs. For Huggingface, use the respective environment for the model in the example. 
 
 All notebooks have been saved with sample outputs for quick browsing.
 
