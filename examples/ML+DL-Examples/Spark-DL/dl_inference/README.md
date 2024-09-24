@@ -40,19 +40,19 @@ If you want to run the notebooks yourself, please follow these instructions. We 
 - for demonstration purposes, these examples just use a local Spark Standalone cluster with a single executor, but you should be able to run them on any distributed Spark cluster.
 - the notebooks can also be run on your local machine in any Jupyter environment, and will default to using a local Spark Session. 
 ```
-# create separate pytorch and tensorflow environments
+# for pytorch users:
 conda create -n spark-dl-pytorch
+conda activate spark-dl-pytorch
+# for tensorflow users:
 conda create -n spark-dl-tensorflow
+conda activate spark-dl-tensorflow
 
-conda activate spark-dl-(insert-library)
-
-# install dependencies in both environments
+# install dependencies
 pip install -r requirements.txt
 
-# in spark-dl-pytorch:
+# for pytorch users:
 pip install torch==2.4.0 torchvision==0.19.0 torchtext==0.18.0 --index-url https://download.pytorch.org/whl/cu121
-
-# in spark-dl-tensorflow
+# for tensorflow users:
 pip install tensorflow[and-cuda]
 
 # setup environment variables
