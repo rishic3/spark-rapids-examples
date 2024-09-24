@@ -28,33 +28,38 @@ df = spark.read.parquet("mnist_data")
 predictions = df.withColumn("preds", mnist("data")).collect()
 ```
 
-In this simple case, the `predict_batch_fn` will use TensorFlow APIs to load the model and return a simple `predict` function which operates on numpy arrays.  The `predict_batch_udf` will automatically convert the Spark DataFrame columns to the expected numpy inputs.
+In this simple case, the `predict_batch_fn` will use TensorFlow APIs to load the model and return a simple `predict` function which operates on numpy arrays.  The `predict_batch_udf` will automatically convert the Spark DataFrame columns to the expected numpy inputs. For Huggingface, use the respective environment for the model in the example. 
 
 All notebooks have been saved with sample outputs for quick browsing.
 
 ## Running the Notebooks
 
 If you want to run the notebooks yourself, please follow these instructions. 
-- We recommend creating separate environments for Tensorflow and PyTorch to avoid conflicts between the CUDA libraries bundled with their respective versions. Either environment can be used for huggingface examples.
+- We recommend creating separate environments for PyTorch/Tensorflow to avoid conflicts between the CUDA libraries bundled with their respective versions. 
 
 **Notes**: 
 - for demonstration purposes, these examples just use a local Spark Standalone cluster with a single executor, but you should be able to run them on any distributed Spark cluster.
 - the notebooks can also be run on your local machine in any Jupyter environment, and will default to using a local Spark Session. 
 ```
-# for pytorch users:
-conda create -n spark-dl-pytorch
-conda activate spark-dl-pytorch
-# for tensorflow users:
-conda create -n spark-dl-tensorflow
-conda activate spark-dl-tensorflow
+# for pytorch:
+conda create -n spark-dl-torch
+conda activate spark-dl-torch
+# for tensorflow:
+conda create -n spark-dl-tf
+conda activate spark-dl-tf
+# for huggingface:
+conda create -n spark-dl-hf
+conda activate spark-dl-hf
 
 # install dependencies
 pip install -r requirements.txt
 
-# for pytorch users:
-pip install torch==2.4.0 torchvision==0.19.0 --index-url https://download.pytorch.org/whl/cu121
-# for tensorflow users:
+# for pytorch:
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+pip install sentence_transformers sentencepiece # Huggingface sentence transformers
+# for tensorflow:
 pip install tensorflow[and-cuda]
+pip install transformers # Huggingface conditional generation and pipelines
 
 # setup environment variables
 export SPARK_HOME=/path/to/spark
