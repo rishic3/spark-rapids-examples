@@ -35,13 +35,31 @@ All notebooks have been saved with sample outputs for quick browsing.
 ## Running the Notebooks
 
 If you want to run the notebooks yourself, please follow these instructions. 
+- We recommend creating separate environments depending on the platform to avoid conflicts between the CUDA libraries bundled with their respective versions. 
 
 **Notes**: 
 - for demonstration purposes, these examples just use a local Spark Standalone cluster with a single executor, but you should be able to run them on any distributed Spark cluster.
 - the notebooks can also be run on your local machine in any Jupyter environment, and will default to using a local Spark Session. 
 ```
+# for pytorch:
+conda create -n spark-dl-torch
+conda activate spark-dl-torch
+# for tensorflow:
+conda create -n spark-dl-tf
+conda activate spark-dl-tf
+# for huggingface:
+conda create -n spark-dl-hf
+conda activate spark-dl-hf
+
 # install dependencies
 pip install -r requirements.txt
+
+# for pytorch:
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+# for tensorflow:
+pip install tensorflow[and-cuda]
+# for huggingface:
+pip install sentencepiece transformers sentence_transformers
 
 # setup environment variables
 export SPARK_HOME=/path/to/spark
