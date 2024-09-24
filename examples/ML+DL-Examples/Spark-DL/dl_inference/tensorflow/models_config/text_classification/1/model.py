@@ -130,7 +130,7 @@ class TritonPythonModel:
             sentences = np.squeeze(sentences).tolist()
             sentences = [s.decode('utf-8') for s in sentences]
 
-            pred = self.model.predict(sentences)
+            pred = self.model.predict(sentences, verbose=0)
 
             # Create output tensors. You need pb_utils.Tensor
             # objects to create pb_utils.InferenceResponse.
