@@ -34,7 +34,8 @@ All notebooks have been saved with sample outputs for quick browsing.
 
 ## Running the Notebooks
 
-If you want to run the notebooks yourself, please follow these instructions. We recommend creating separate environments for Tensorflow and PyTorch to avoid conflicts between the CUDA libraries bundled with their respective versions. 
+If you want to run the notebooks yourself, please follow these instructions. 
+- We recommend creating separate environments for Tensorflow and PyTorch to avoid conflicts between the CUDA libraries bundled with their respective versions. Either environment can be used for huggingface examples.
 
 **Notes**: 
 - for demonstration purposes, these examples just use a local Spark Standalone cluster with a single executor, but you should be able to run them on any distributed Spark cluster.
