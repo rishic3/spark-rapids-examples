@@ -56,10 +56,10 @@ pip install -r requirements.txt
 
 # for pytorch:
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+pip install sentence_transformers sentencepiece # Huggingface sentence transformers
 # for tensorflow:
 pip install tensorflow[and-cuda]
-# for huggingface:
-pip install sentencepiece transformers sentence_transformers
+pip install transformers # Huggingface conditional generation and pipelines
 
 # setup environment variables
 export SPARK_HOME=/path/to/spark
