@@ -12,3 +12,4 @@ huggingface
 datasets
 docker
 tritonclient[grpc]
+transformers
