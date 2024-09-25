@@ -47,19 +47,15 @@ conda activate spark-dl-torch
 # for tensorflow:
 conda create -n spark-dl-tf
 conda activate spark-dl-tf
-# for huggingface:
-conda create -n spark-dl-hf
-conda activate spark-dl-hf
 
 # install dependencies
 pip install -r requirements.txt
 
 # for pytorch:
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-pip install sentence_transformers sentencepiece # Huggingface sentence transformers
+pip install sentence_transformers sentencepiece
 # for tensorflow:
-pip install tensorflow[and-cuda]
-pip install transformers # Huggingface conditional generation and pipelines
+pip install tensorflow[and-cuda] tf-keras
 
 # setup environment variables
 export SPARK_HOME=/path/to/spark
