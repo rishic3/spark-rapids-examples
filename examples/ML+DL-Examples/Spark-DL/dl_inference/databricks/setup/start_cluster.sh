@@ -14,7 +14,7 @@ json_config=$(cat <<EOF
     "spark_conf": {
         "spark.task.resource.gpu.amount": "0.1666",
         "spark.python.worker.reuse": "true",
-        "spark.executorEnv.PYTHONPATH": "/databricks/jars/rapids-4-spark_2.12-24.10.0.jar:/databricks/spark/python:/databricks/python3",
+        "spark.executorEnv.PYTHONPATH": "/databricks/jars/rapids-4-spark_2.12-24.10.1.jar:/databricks/spark/python:/databricks/python3",
         "spark.sql.pyspark.jvmStacktrace.enabled": "true",
         "spark.sql.execution.arrow.maxRecordsPerBatch": "10000",
         "spark.executor.cores": "6",

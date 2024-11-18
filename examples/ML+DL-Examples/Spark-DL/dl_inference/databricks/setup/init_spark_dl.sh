@@ -4,7 +4,7 @@
 set -x
 # spark-rapids plugin
 SCALA_VERSION=2.12
-SPARK_RAPIDS_VERSION=24.10.0
+SPARK_RAPIDS_VERSION=24.10.1
 RAPIDS_JAR=rapids-4-spark_${SCALA_VERSION}-${SPARK_RAPIDS_VERSION}.jar
 curl -L https://repo1.maven.org/maven2/com/nvidia/rapids-4-spark_${SCALA_VERSION}/${SPARK_RAPIDS_VERSION}/${RAPIDS_JAR} -o \
     /databricks/jars/${RAPIDS_JAR}
