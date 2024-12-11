@@ -65,12 +65,14 @@ To run **distributed tuning** on Spark, we take the following steps:
 
 ### Examples
 
-We provide **2 notebooks**, with differences in the backend/implementation. See [implementation notes](#implementation-notes) for more details.
+We provide **3 notebooks**, with differences in the backend/implementation. See [implementation notes](#implementation-notes) for more details.
 
 - `optuna-joblibspark.ipynb`: Uses the [Joblib Spark backend](https://github.com/joblib/joblib-spark) to distribute tasks on the Spark cluster, with a MySQL storage backend. Builds on [this Databricks example](https://docs.databricks.com/en/machine-learning/automl-hyperparam-tuning/optuna.html). Implements *Worker-I/O*, where each worker reads the full dataset from a specified filepath (e.g., distributed file system).
 - `optuna-dataframe.ipynb`: Uses Spark dataframes to distribute tasks on the cluster, with a MySQL storage backend. Implements *Spark-I/O*, where Spark reads the dataset from a specified filepath, then duplicates and repartitions it so that each worker task is mapped onto a copy of the dataset.
-
   Dataframe operations are accelerated on GPU with the [Spark-RAPIDS Accelerator](https://nvidia.github.io/spark-rapids/).
+- `optuna-deterministic.ipynb`: Deterministic implementation. Uses Spark barrier stages to synchronize trials and ensure reproducible results. Implements *Worker-I/O*, where each worker reads the full dataset from a specified filepath (e.g., distributed file system).
+
+  
 
 ## Running Optuna on Spark Standalone
 
@@ -207,7 +209,7 @@ Locate the notebook in your workspace and click on `Connect` to attach it to the
 
 The graph below shows running times comparing distributed (8 GPUs) vs. single GPU hyperparameter tuning with 100 trials on synthetic regression datasets.  
 
-![Databricks benchmarking results](images/runtimes.png)
+<img src="images/deterministic_runtime_comp.png" alt="drawing" width="1000"/>
 
 ## How does it work?
 
@@ -227,12 +229,21 @@ Application parallelism with JoblibSpark:
 
 ###### Data I/O:
 Since each worker requires the full dataset to perform hyperparameter tuning, there are two strategies to get the data into worker memory:
-  - **Worker I/O**: *each worker reads the dataset* from the filepath once the task has begun. In practice, this requires the dataset to be written to a distributed file system accessible to all workers prior to tuning. The `optuna-joblibspark` notebook demonstrates this.
-  - **Spark I/O**: Spark reads the dataset and **creates a copy of the dataset for each worker**, then maps the tuning task onto each copy. In practice, this enables the code to be chained to other Dataframe operations (e.g. ETL stages) without the intermediate step of writing to DBFS, at the cost of some overhead during duplication. The `optuna-dataframe` notebook demonstrates this.
+  - **Worker I/O**: *each worker reads the dataset* from the filepath once the task has begun. In practice, this requires the dataset to be written to a distributed file system accessible to all workers prior to tuning. The `optuna-joblibspark` and `optuna-deterministic` notebooks demonstrates this.
+  - **Spark I/O**: Spark reads the dataset and *creates a copy of the dataset for each worker*, then maps the tuning task onto each copy. In practice, this enables the code to be chained to other Dataframe operations (e.g. ETL stages) without the intermediate step of writing to DBFS, at the cost of some overhead during duplication. The `optuna-dataframe` notebook demonstrates this.
     - To achieve this, we coalesce the input Dataframe to a single partition, and recursively self-union until we have the desired number of copies (number of workers). Thus each partition will contain a duplicate of the entire dataset, and the Optuna task can be mapped directly onto the partitions.
 
+###### Determinism:
+In `optuna-deterministic`, we take the following steps to achieve determinism:  
+- Each of the n workers creates a *local Optuna study*. 
+- At the start of each iteration, each worker will initialize n new trials in their local study, but only execute the trial associated with their worker ID. 
+- At the end of each iteration, the workers perform a barrier.allgather() to synchronize and get trial results from all workers.
+- The workers update the n trials with these results in a deterministic order (using Optuna's [ask-and-tell interface](https://optuna.readthedocs.io/en/stable/tutorial/20_recipes/009_ask_and_tell.html)).
+- Finally, one worker will save the study to MySQL for persistent storage.
+
+For the other notebooks, Optuna in distributed mode is **non-deterministic** (see [this link](https://optuna.readthedocs.io/en/stable/faq.html#how-can-i-obtain-reproducible-optimization-results)), as trials are executed asynchronously by executors.
 
 ###### Misc:
 - Please be aware that Optuna studies will continue where they left off from previous trials; delete and recreate the study if you would like to start anew.
-- Optuna in distributed mode is **non-deterministic** (see [this link](https://optuna.readthedocs.io/en/stable/faq.html#how-can-i-obtain-reproducible-optimization-results)), as trials are executed asynchronously by executors. Deterministic behavior can be achieved using Spark barriers to coordinate reads/writes to the database.
+
 - Reading data with GPU using cuDF requires disabling [GPUDirect Storage](https://docs.rapids.ai/api/cudf/nightly/user_guide/io/io/#magnum-io-gpudirect-storage-integration), i.e., setting the environment variable `LIBCUDF_CUFILE_POLICY=OFF`, to be compatible with the Databricks file system. Without GDS, cuDF will use a CPU bounce buffer when reading files, but all parsing and decoding will still be accelerated by the GPU. 
