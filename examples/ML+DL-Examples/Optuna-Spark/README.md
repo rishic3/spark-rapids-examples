@@ -84,6 +84,8 @@ We provide **3 notebooks**, with differences in the backend/implementation. See 
 
 ### 1. Setup Database for Optuna
 
+**NOTE**: For the deterministic implementation, this step can be skipped as we don't need the shared database. Proceed to [step 2](#2-setup-optuna-python-environment).  
+
 Optuna offers an RDBStorage option which allows for the persistence of experiments across different machines and processes, thereby enabling Optuna tasks to be distributed.
 
 This section will walk you through setting up MySQL as the backend for RDBStorage in Optuna.
@@ -149,13 +151,13 @@ try the command:
 Install the MySQL client and create a conda environment with the required libraries.  
 We use [RAPIDS](https://docs.rapids.ai/install/#get-rapids) for GPU-accelerated ETL. See the [docs](https://docs.rapids.ai/install/#get-rapids) for version selection.
 ``` shell
-sudo apt install libmysqlclient-dev
+sudo apt install libmysqlclient-dev  # Skip for deterministic implementation
 
 conda create -n rapids-24.10 -c rapidsai -c conda-forge -c nvidia  \
     cudf=24.10 cuml=24.10 python=3.10 'cuda-version>=12.0,<=12.5'
 conda activate optuna-spark
-pip install mysqlclient
 pip install optuna joblib joblibspark ipywidgets
+pip install mysqlclient  # Skip for deterministic implementation
 ```
 
 ### 3. Start Standalone Cluster and Run
@@ -176,6 +178,8 @@ The notebook contains instructions to attach to the standalone cluster.
 
 
 ## Running Optuna on Databricks
+
+**NOTE**: For the deterministic implementation, replace the paths below with the scripts `databricks/deterministic/init_optuna.sh` and `databricks/deterministic/start_cluster.sh`. These versions do not setup the MySQL database (which is not needed), nor download the Spark-RAPIDS plugin (since no dataframe operations occur anyway), this way the latest Databricks runtime can be used.
 
 ### 1. Upload Init Script and Notebook
 
@@ -247,9 +251,12 @@ In `optuna-deterministic`, we take the following steps to achieve determinism:
 - The workers update the n trials with these results in a deterministic order (using Optuna's [ask-and-tell interface](https://optuna.readthedocs.io/en/stable/tutorial/20_recipes/009_ask_and_tell.html)).
 - Finally, one worker will save the study to MySQL for persistent storage.
 
-High-level implementation:
+High-level implementation:  
+
 <img src="images/optuna-deterministic.png" alt="drawing" width="800"/>
-Close-up of a worker task:
+
+Close-up of a worker task:  
+
 <img src="images/deterministic-worker-task.png" alt="drawing" width="400"/>
 
 For the other notebooks, Optuna in distributed mode is **non-deterministic** (see [this link](https://optuna.readthedocs.io/en/stable/faq.html#how-can-i-obtain-reproducible-optimization-results)), as trials are executed asynchronously by executors.
