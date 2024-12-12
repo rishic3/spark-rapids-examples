@@ -8,7 +8,7 @@ fi
 
 json_config=$(cat <<EOF
 {
-    "cluster_name": "optuna-xgboost-gpu",
+    "cluster_name": "optuna-xgboost-gpu-deterministic",
     "spark_version": "15.4.x-gpu-ml-scala2.12",
     "spark_conf": {
         "spark.task.resource.gpu.amount": "1",
