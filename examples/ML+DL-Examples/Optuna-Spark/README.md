@@ -61,7 +61,7 @@ study.optimize(objective, n_trials=100)
 To run **distributed tuning** on Spark, we take the following steps:
 1. Each worker receives a copy of the same dataset. 
 2. Each worker runs a subset of the trials in parallel.
-3. Workers write trial results and receive new hyperparameters using a shared MySQL database. 
+3. Workers write trial results and receive new hyperparameters using a shared database. 
 
 ### Examples
 
