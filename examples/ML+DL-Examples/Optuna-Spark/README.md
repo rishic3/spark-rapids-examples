@@ -247,9 +247,10 @@ In `optuna-deterministic`, we take the following steps to achieve determinism:
 - The workers update the n trials with these results in a deterministic order (using Optuna's [ask-and-tell interface](https://optuna.readthedocs.io/en/stable/tutorial/20_recipes/009_ask_and_tell.html)).
 - Finally, one worker will save the study to MySQL for persistent storage.
 
-High-level implementation:
+High-level implementation:  
 <img src="images/optuna-deterministic.png" alt="drawing" width="800"/>
-Close-up of a worker task:
+
+Close-up of a worker task:  
 <img src="images/deterministic-worker-task.png" alt="drawing" width="400"/>
 
 For the other notebooks, Optuna in distributed mode is **non-deterministic** (see [this link](https://optuna.readthedocs.io/en/stable/faq.html#how-can-i-obtain-reproducible-optimization-results)), as trials are executed asynchronously by executors.
