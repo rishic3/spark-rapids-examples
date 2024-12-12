@@ -179,7 +179,7 @@ The notebook contains instructions to attach to the standalone cluster.
 
 ## Running Optuna on Databricks
 
-**NOTE**: For the deterministic implementation, replace the paths below with the scripts `databricks/deterministic/init_optuna.sh` and `databricks/deterministic/start_cluster.sh`. These versions do not setup the MySQL database (which is not needed), nor download the Spark-RAPIDS plugin (since no dataframe operations occur anyway), this way the latest Databricks runtime can be used.
+**NOTE**: For the deterministic implementation, we have separate setup scripts in the folder `databricks/deterministic/`. These scripts do not setup the MySQL database (which is not needed), nor download the Spark-RAPIDS plugin (since no dataframe operations occur anyway), this way the latest Databricks runtime can be used.
 
 ### 1. Upload Init Script and Notebook
 
@@ -188,9 +188,15 @@ The notebook contains instructions to attach to the standalone cluster.
     ```shell
     databricks workspace import /Users/someone@example.com/optuna/optuna-joblibspark.ipynb --format JUPYTER --file optuna-joblibspark.ipynb
     ```
-- Copy the init script ```databricks/init_optuna.sh```:
+- Copy the init script:
     ```shell
     databricks workspace import /Users/someone@example.com/optuna/init_optuna.sh --format AUTO --file databricks/init_optuna.sh
+    ```
+    The init script will install the required libraries on all nodes, including RAPIDS and the Spark-RAPIDS plugin for GPU-accelerated ETL. On the driver, it will setup the MySQL server backend. 
+
+  **For the deterministic implementation** (no MySQL/Spark-RAPIDS setup):
+    ```shell
+    databricks workspace import /Users/someone@example.com/optuna/init_optuna.sh --format AUTO --file databricks/deterministic/init_optuna.sh
     ```
 
 ### 2. Create Cluster
@@ -198,18 +204,26 @@ The notebook contains instructions to attach to the standalone cluster.
 *For Databricks Azure*: Use the cluster startup script, which is configured to create a 4 node GPU cluster:
 ```shell
 export INIT_PATH=/Users/someone@example.com/optuna/init_optuna.sh
+
 cd databricks
 chmod +x start_cluster.sh
 ./start_cluster.sh
 ```
+**For the deterministic implementation** (no Spark-RAPIDS plugin, latest Databricks runtime):
+```shell
+export INIT_PATH=/Users/someone@example.com/optuna/init_optuna.sh
+
+cd databricks/deterministic
+chmod +x start_cluster.sh
+./start_cluster.sh
+```
+
 
 Or, create a cluster via the web UI:
 - Go to `Compute > Create compute` and set the desired cluster settings.    
 - Under `Advanced Options > Init Scripts`, upload the init script from your workspace.
 - Under `Advanced Options > Spark > Environment variables`, set `LIBCUDF_CUFILE_POLICY=OFF`.
 - Make sure to use a GPU cluster and include task GPU resources.
-
-The init script will install the required libraries on all nodes, including RAPIDS and the Spark-RAPIDS plugin for GPU-accelerated ETL. On the driver, it will setup the MySQL server backend. 
 
 ### 3. Run Notebook
 
@@ -249,7 +263,7 @@ In `optuna-deterministic`, we take the following steps to achieve determinism:
 - At the start of each iteration, each worker will initialize n new trials in their local study, but only execute the trial associated with their worker ID. 
 - At the end of each iteration, the workers perform a barrier.allgather() to synchronize and get trial results from all workers.
 - The workers update the n trials with these results in a deterministic order (using Optuna's [ask-and-tell interface](https://optuna.readthedocs.io/en/stable/tutorial/20_recipes/009_ask_and_tell.html)).
-- Finally, one worker will save the study to MySQL for persistent storage.
+- Finally, the workers return the study dataframe.
 
 High-level implementation:  
 
