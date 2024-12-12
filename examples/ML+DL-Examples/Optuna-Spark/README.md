@@ -65,7 +65,7 @@ To run **distributed tuning** on Spark, we take the following steps:
 
 ### Examples
 
-We provide **3 notebooks**, with differences in the backend/implementation. See [implementation notes](#implementation-notes) for more details.
+We provide **4 notebooks**, with differences in the backend/implementation. See [implementation notes](#implementation-notes) for more details.
 
 - `optuna-joblibspark.ipynb`: 
   - Uses the [Joblib Spark backend](https://github.com/joblib/joblib-spark) to distribute tasks on the Spark cluster.
@@ -76,15 +76,18 @@ We provide **3 notebooks**, with differences in the backend/implementation. See 
   - Implements *Spark-I/O*, where Spark reads the dataset from a specified filepath, then duplicates and repartitions it so that each worker task is mapped onto a copy of the dataset.
   - Dataframe operations are accelerated on GPU with the [Spark-RAPIDS Accelerator](https://nvidia.github.io/spark-rapids/).
 - `optuna-deterministic.ipynb`: 
-  - Deterministic implementation. Uses Spark barrier stages to synchronize trials and ensure reproducible results.
+  - Deterministic implementation. Uses Spark barrier stages to synchronize trials and ensure reproducible results. 
   - Implements *Worker-I/O*, where each worker reads the full dataset from a specified filepath (e.g., distributed file system).
+- `optuna-deterministic-no-db.ipynb`: 
+  - Same as `optuna-deterministic`, but avoids MySQL entirely by returning a Pandas Dataframe of the study rather than writing to the database.
+
   
 
 ## Running Optuna on Spark Standalone
 
 ### 1. Setup Database for Optuna
 
-**NOTE**: For the deterministic implementation, this step can be skipped as we don't need the shared database. Proceed to [step 2](#2-setup-optuna-python-environment).  
+**NOTE**: For running `optuna-deterministic-no-db`, this step can be skipped as we don't need the shared database. Proceed to [step 2](#2-setup-optuna-python-environment).  
 
 Optuna offers an RDBStorage option which allows for the persistence of experiments across different machines and processes, thereby enabling Optuna tasks to be distributed.
 
@@ -179,7 +182,7 @@ The notebook contains instructions to attach to the standalone cluster.
 
 ## Running Optuna on Databricks
 
-**NOTE**: For the deterministic implementation, we have separate setup scripts in the folder `databricks/deterministic/`. These scripts do not setup the MySQL database (which is not needed), nor download the Spark-RAPIDS plugin (since no dataframe operations occur anyway), this way the latest Databricks runtime can be used.
+**NOTE**: For the `optuna-deterministic-no-db` implementation, we have separate setup scripts in the folder `databricks/deterministic-no-db/`. These scripts do not setup the MySQL database (which is not needed), nor download the Spark-RAPIDS plugin (since no dataframe operations occur anyway), this way the latest Databricks runtime can be used.
 
 ### 1. Upload Init Script and Notebook
 
@@ -194,9 +197,9 @@ The notebook contains instructions to attach to the standalone cluster.
     ```
     The init script will install the required libraries on all nodes, including RAPIDS and the Spark-RAPIDS plugin for GPU-accelerated ETL. On the driver, it will setup the MySQL server backend. 
 
-  **For the deterministic implementation** (no MySQL/Spark-RAPIDS setup):
+  **For `optuna-deterministic-no-db`** (no MySQL/Spark-RAPIDS setup):
     ```shell
-    databricks workspace import /Users/someone@example.com/optuna/init_optuna.sh --format AUTO --file databricks/deterministic/init_optuna.sh
+    databricks workspace import /Users/someone@example.com/optuna/init_optuna.sh --format AUTO --file databricks/deterministic-no-db/init_optuna.sh
     ```
 
 ### 2. Create Cluster
@@ -209,11 +212,11 @@ cd databricks
 chmod +x start_cluster.sh
 ./start_cluster.sh
 ```
-**For the deterministic implementation** (no Spark-RAPIDS plugin, latest Databricks runtime):
+**For `optuna-deterministic-no-db`** (no Spark-RAPIDS plugin, latest Databricks runtime):
 ```shell
 export INIT_PATH=/Users/someone@example.com/optuna/init_optuna.sh
 
-cd databricks/deterministic
+cd databricks/deterministic-no-db
 chmod +x start_cluster.sh
 ./start_cluster.sh
 ```
