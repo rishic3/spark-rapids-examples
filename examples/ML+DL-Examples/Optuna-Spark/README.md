@@ -266,7 +266,9 @@ In `optuna-deterministic`, we take the following steps to achieve determinism:
 - At the start of each iteration, each worker will initialize n new trials in their local study, but only execute the trial associated with their worker ID. 
 - At the end of each iteration, the workers perform a barrier.allgather() to synchronize and get trial results from all workers.
 - The workers update the n trials with these results in a deterministic order (using Optuna's [ask-and-tell interface](https://optuna.readthedocs.io/en/stable/tutorial/20_recipes/009_ask_and_tell.html)).
-- Finally, the workers return the study dataframe.
+- Finally,
+  - In the case of `optuna-deterministic`, one worker writes the study to MySQL.
+  - In the case of `optuna-deterministic-no-db`, the workers return the study as a Pandas dataframe.
 
 High-level implementation:  
 
