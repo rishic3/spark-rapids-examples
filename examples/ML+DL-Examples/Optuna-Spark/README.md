@@ -247,9 +247,14 @@ In `optuna-deterministic`, we take the following steps to achieve determinism:
 - The workers update the n trials with these results in a deterministic order (using Optuna's [ask-and-tell interface](https://optuna.readthedocs.io/en/stable/tutorial/20_recipes/009_ask_and_tell.html)).
 - Finally, one worker will save the study to MySQL for persistent storage.
 
+High-level implementation:
+<img src="images/optuna-deterministic.png" alt="drawing" width="800"/>
+Close-up of a worker task:
+<img src="images/deterministic-worker-task.png" alt="drawing" width="400"/>
+
 For the other notebooks, Optuna in distributed mode is **non-deterministic** (see [this link](https://optuna.readthedocs.io/en/stable/faq.html#how-can-i-obtain-reproducible-optimization-results)), as trials are executed asynchronously by executors.
 
 ###### Misc:
 - Please be aware that Optuna studies will continue where they left off from previous trials; delete and recreate the study if you would like to start anew.
-
+- Note that the study doesn’t store the state of the instance of samplers and pruners. To resume a study with a sampler whose seed argument is specified for reproducibility, [the sampler can be pickled](https://optuna.readthedocs.io/en/stable/tutorial/20_recipes/001_rdb.html#resume-study) and returned to the driver alongside the results.
 - Reading data with GPU using cuDF requires disabling [GPUDirect Storage](https://docs.rapids.ai/api/cudf/nightly/user_guide/io/io/#magnum-io-gpudirect-storage-integration), i.e., setting the environment variable `LIBCUDF_CUFILE_POLICY=OFF`, to be compatible with the Databricks file system. Without GDS, cuDF will use a CPU bounce buffer when reading files, but all parsing and decoding will still be accelerated by the GPU. 
