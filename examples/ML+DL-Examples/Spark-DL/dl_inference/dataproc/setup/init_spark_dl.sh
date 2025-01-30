@@ -51,8 +51,9 @@ urllib3<2
 nvidia-pytriton"
 
 TORCH_REQUIREMENTS="${COMMON_REQUIREMENTS}
-torch
+torch==2.5.1
 torchvision
+torch-tensorrt
 tensorrt --extra-index-url https://download.pytorch.org/whl/cu121
 sentence_transformers
 sentencepiece
@@ -74,11 +75,6 @@ fi
 # install requirements
 pip install --upgrade pip
 echo "${REQUIREMENTS}" > temp_requirements.txt
-
-# pypi index for torch-tensorrt is broken; install from github
-if [[ "${FRAMEWORK}" == "torch" ]]; then
-    sudo /databricks/python3/bin/pip3 install torch-tensorrt -f https://github.com/NVIDIA/Torch-TensorRT/releases
-fi
 
 pip install --upgrade --force-reinstall -r temp_requirements.txt
 rm temp_requirements.txt

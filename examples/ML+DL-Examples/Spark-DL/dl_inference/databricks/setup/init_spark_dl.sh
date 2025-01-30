@@ -12,8 +12,9 @@ datasets==3.*
 transformers
 urllib3<2
 nvidia-pytriton
-torch
+torch==2.5.1
 torchvision
+torch-tensorrt
 tensorrt --extra-index-url https://download.pytorch.org/whl/cu121
 sentence_transformers
 sentencepiece
@@ -29,11 +30,6 @@ EOF
 else
     echo "Please export FRAMEWORK as torch or tf per README"
     exit 1
-fi
-
-# pypi index for torch-tensorrt is broken; install from github
-if [[ "${FRAMEWORK}" == "torch" ]]; then
-    sudo /databricks/python3/bin/pip3 install torch-tensorrt -f https://github.com/NVIDIA/Torch-TensorRT/releases
 fi
 
 sudo /databricks/python3/bin/pip3 install --upgrade --force-reinstall -r temp_requirements.txt

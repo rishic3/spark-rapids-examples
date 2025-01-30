@@ -65,10 +65,6 @@ Each notebook has a suffix `_torch` or `_tf` specifying the environment used.
 ```shell
 conda create -n spark-dl-torch python=3.11
 conda activate spark-dl-torch
-```
-To run the Torch notebooks (which demonstrate inference with TensorRT), install Torch-Tensorrt prior to the requirements, as the PyPi index for torch-tensorrt is currently broken.
-```shell
-pip install torch-tensorrt -f https://github.com/NVIDIA/Torch-TensorRT/releases
 pip install -r torch_requirements.txt
 ```
 **For TensorFlow:**
