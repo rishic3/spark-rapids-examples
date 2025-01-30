@@ -35,11 +35,40 @@ sed -i '/spark.plugins=com.nvidia.spark.SQLPlugin/d' spark-rapids.sh
 gcloud storage cp spark-rapids.sh gs://${SPARK_DL_HOME}/init/
 # rm spark-rapids.sh
 
+COMMON_REQUIREMENTS="numpy
+pandas
+matplotlib
+portalocker
+pyarrow
+pydot
+scikit-learn
+huggingface
+datasets==3.*
+transformers
+urllib3<2
+nvidia-pytriton"
+
+TORCH_REQUIREMENTS="${COMMON_REQUIREMENTS}
+torch
+torchvision --extra-index-url https://download.pytorch.org/whl/cu121
+torch-tensorrt
+tensorrt --extra-index-url https://download.pytorch.org/whl/cu121
+sentence_transformers
+sentencepiece
+nvidia-modelopt[all] --extra-index-url https://pypi.nvidia.com"
+
+TF_REQUIREMENTS="${COMMON_REQUIREMENTS}
+tensorflow[and-cuda]
+tf-keras"
+
+cluster_name=${USER}-spark-dl-inference-${FRAMEWORK}
 if [[ ${FRAMEWORK} == "torch" ]]; then
+    requirements=${TORCH_REQUIREMENTS}
     echo "========================================================="
     echo "Starting PyTorch cluster ${cluster_name}"
     echo "========================================================="
 elif [[ ${FRAMEWORK} == "tf" ]]; then
+    requirements=${TF_REQUIREMENTS}
     echo "========================================================="
     echo "Starting Tensorflow cluster ${cluster_name}"
     echo "========================================================="
@@ -47,7 +76,6 @@ else
     echo "Please export FRAMEWORK as torch or tf"
     exit 1
 fi
-cluster_name=${USER}-spark-dl-inference-${FRAMEWORK}
 
 # start cluster if not already running
 if gcloud dataproc clusters list | grep -q "${cluster_name}"; then
@@ -66,7 +94,7 @@ else
     --metadata gpu-driver-provider="NVIDIA" \
     --metadata gcs-bucket=${GCS_BUCKET} \
     --metadata spark-dl-home=${SPARK_DL_HOME} \
-    --metadata framework="${FRAMEWORK}" \
+    --metadata requirements="${requirements}" \
     --worker-local-ssd-interface=NVME \
     --optional-components=JUPYTER \
     --bucket ${GCS_BUCKET} \

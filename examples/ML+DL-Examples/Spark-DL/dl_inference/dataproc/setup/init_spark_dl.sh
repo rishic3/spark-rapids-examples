@@ -21,9 +21,9 @@ if [[ ${GCS_BUCKET} == "UNSET" ]]; then
     exit 1
 fi
 
-FRAMEWORK=$(get_metadata_attribute framework UNSET)
-if [[ ${FRAMEWORK} == "UNSET" ]]; then
-    echo "Please set --metadata framework"
+REQUIREMENTS=$(get_metadata_attribute requirements UNSET)
+if [[ ${REQUIREMENTS} == "UNSET" ]]; then
+    echo "Please set --metadata requirements"
     exit 1
 fi
 
@@ -37,45 +37,9 @@ sudo mkdir -p /mnt/gcs
 gcsfuse -o allow_other --implicit-dirs ${GCS_BUCKET} /mnt/gcs
 sudo chmod -R 777 /mnt/gcs
 
-COMMON_REQUIREMENTS="numpy
-pandas
-matplotlib
-portalocker
-pyarrow
-pydot
-scikit-learn
-huggingface
-datasets==3.*
-transformers
-urllib3<2
-nvidia-pytriton"
-
-TORCH_REQUIREMENTS="${COMMON_REQUIREMENTS}
-torch==2.5.1
-torchvision
-torch-tensorrt
-tensorrt --extra-index-url https://download.pytorch.org/whl/cu121
-sentence_transformers
-sentencepiece
-nvidia-modelopt[all] --extra-index-url https://pypi.nvidia.com"
-
-TF_REQUIREMENTS="${COMMON_REQUIREMENTS}
-tensorflow[and-cuda]
-tf-keras"
-
-if [[ ${FRAMEWORK} == "torch" ]]; then
-    requirements=${TORCH_REQUIREMENTS}
-elif [[ ${FRAMEWORK} == "tf" ]]; then
-    requirements=${TF_REQUIREMENTS}
-else
-    echo "Please export FRAMEWORK as torch or tf"
-    exit 1
-fi
-
 # install requirements
 pip install --upgrade pip
 echo "${REQUIREMENTS}" > temp_requirements.txt
-
 pip install --upgrade --force-reinstall -r temp_requirements.txt
 rm temp_requirements.txt
 
