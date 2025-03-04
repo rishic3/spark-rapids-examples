@@ -76,6 +76,7 @@ def main():
                             batch_format="pandas")
         ds = ds.map_batches(VLLMPredictor,
                             num_gpus=1,
+                            concurrency=1,
                             batch_size=64)
         ds.write_parquet("spark-dl-datasets/pubmed_abstracts_5k_ray_preds.parquet")
 
