@@ -10,9 +10,15 @@ import pandas as pd
 
 from vllm import LLM, SamplingParams
 
-class VLLMPredictor:
+logger = logging.getLogger("ray.serve")
+
+@serve.deployment(ray_actor_options={"num_gpus": 1})
+class VLLMModel:
     def __init__(self):
-        print(f"Initializing model on GPU {ray.get_gpu_ids()[0]}")
+        """initialize vllm model"""
+        self.gpu_id = ray.get_gpu_ids()[0]
+        logger.info(f"Initializing VLLM service on GPU {self.gpu_id}")
+
         self.sampling_params = SamplingParams(
             temperature=0.7,
             top_p=0.8,
@@ -22,10 +28,20 @@ class VLLMPredictor:
         self.llm = LLM(model="Qwen/Qwen2.5-7B-Instruct", dtype="bfloat16")
 
     def __call__(self, input_batch):
+        """predict batch"""
         outputs = self.llm.generate(input_batch["value"].tolist(), self.sampling_params)
         responses = [output.outputs[0].text for output in outputs]
-        input_batch["response"] = responses
-        return input_batch
+        return responses
+
+class VLLMModelInference:
+    def __init__(self):
+        """init serve handle"""
+        self.handle = serve.get_deployment_handle("VLLMModel", "default")
+        self.handle = self.handle.options(_prefer_local_routing=True)
+
+    def __call__(self, input_batch):
+        result = self.handle.remote(input_batch).result()
+        return {"response": result}
 
 def preprocess_batch(batch: pd.DataFrame, system_prompt: str) -> pd.DataFrame:
     """Preprocessing function for Ray Data pipeline"""
@@ -55,6 +71,11 @@ def main():
         }
     )
 
+    # Start servers
+    serve.start()
+    deployment = VLLMModel.bind()
+    serve.run(deployment)
+
     file_path = "/home/rishic/spark-rapids-examples/examples/ML+DL-Examples/Spark-DL/dl_inference/llm_benchmarks/spark-dl-datasets/pubmed_abstracts_5k.parquet"
 
     system_prompt = """You are a knowledgeable AI assistant. Your job is to create a 2-3 sentence summary 
@@ -70,13 +91,8 @@ def main():
 
         # Begin Ray job: read parquet -> preprocess -> inference -> write parquet
         ds = ray.data.read_parquet(file_path)
-        ds = ds.map_batches(partial(preprocess_batch, system_prompt=system_prompt),
-                            num_cpus=1,
-                            concurrency=8,
-                            batch_format="pandas")
-        ds = ds.map_batches(VLLMPredictor,
-                            num_gpus=1,
-                            batch_size=64)
+        ds = ds.map_batches(partial(preprocess_batch, system_prompt=system_prompt), batch_format="pandas")
+        ds = ds.map_batches(VLLMModelInference, batch_size=64, concurrency=8)
         ds.write_parquet("spark-dl-datasets/pubmed_abstracts_5k_ray_preds.parquet")
 
         end_write = time.perf_counter()
