@@ -90,7 +90,6 @@ def main():
             f.write(f"Start read time: {start_read}\nEnd write time: {end_write}\n")
     finally:
         monitor.stop()
-        serve.shutdown()
 
 if __name__ == "__main__":
     main()
