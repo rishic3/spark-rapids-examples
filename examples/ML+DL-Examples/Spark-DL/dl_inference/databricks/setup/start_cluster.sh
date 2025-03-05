@@ -3,20 +3,55 @@
 
 set -eo pipefail
 
-# configure arguments
-if [[ -z ${INIT_DEST} ]]; then
-    echo "Please make sure INIT_DEST is exported per README.md"
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <aws|azure>"
     exit 1
 fi
 
-if [[ -z ${FRAMEWORK} ]]; then
-    echo "Please make sure FRAMEWORK is exported to torch or tf per README.md"
+CLOUD_PROVIDER=$1
+
+if [[ "${FRAMEWORK}" != "vllm" && "${FRAMEWORK}" != "torch" && "${FRAMEWORK}" != "tf" ]]; then
+    echo "Error: Please export FRAMEWORK as torch, tf, or vllm per README"
     exit 1
 fi
 
-# Modify the node_type_id and driver_node_type_id below if you don't have this specific instance type. 
-# Modify executor.cores=(cores per node) and task.resource.gpu.amount=(1/executor cores) accordingly.
-# We recommend selecting A10/L4+ instances for these examples.
+# Modify the node types below if your Databricks account does not have these specific instance types. 
+# Modify EXECUTOR_CORES=(cores per node) accordingly.
+# We recommend selecting instances with A10/L4+ GPUs for these examples.
+if [[ "${CLOUD_PROVIDER}" == "aws" ]]; then
+    DRIVER_NODE_TYPE="g5.2xlarge"
+    
+    if [[ "${FRAMEWORK}" == "vllm" ]]; then
+        # For vLLM tensor-parallelism examples, select an instance with 4 GPUs (AWS does not have 2-GPU instances). 
+        NODE_TYPE="g5.12xlarge"
+        EXECUTOR_CORES=48
+        EXECUTOR_GPU_AMT=4
+    elif [[ "${FRAMEWORK}" == "torch" || "${FRAMEWORK}" == "tf" ]]; then
+        NODE_TYPE="g5.4xlarge"
+        EXECUTOR_CORES=16
+        EXECUTOR_GPU_AMT=1
+    fi
+elif [[ "${CLOUD_PROVIDER}" == "azure" ]]; then
+    DRIVER_NODE_TYPE="Standard_NV36ads_A10_v5"
+    
+    if [[ "${FRAMEWORK}" == "vllm" ]]; then
+        # For vLLM tensor-parallelism examples, we need an instance with 2 GPUs.
+        NODE_TYPE="Standard_NV72ads_A10_v5"
+        EXECUTOR_CORES=72
+        EXECUTOR_GPU_AMT=2
+    elif [[ "${FRAMEWORK}" == "torch" || "${FRAMEWORK}" == "tf" ]]; then
+        NODE_TYPE="Standard_NV36ads_A10_v5"
+        EXECUTOR_CORES=36
+        EXECUTOR_GPU_AMT=1
+    fi
+else
+    echo "Error: Cloud provider must be either 'aws' or 'azure'"
+    exit 1
+fi
+
+# task GPU amount = executor GPU amount / executor cores
+TASK_GPU_AMT=$(awk "BEGIN {print ${EXECUTOR_GPU_AMT}/${EXECUTOR_CORES}}")
+
 json_config=$(cat <<EOF
 {
     "cluster_name": "spark-dl-inference-${FRAMEWORK}",

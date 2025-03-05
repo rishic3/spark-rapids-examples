@@ -1,4 +1,4 @@
-# Spark DL Inference on Databricks
+# Spark DL Inference on Databricks AWS/Azure
 
 **Note**: fields in \<brackets\> require user inputs.  
 Make sure you are in [this](./) directory.
@@ -38,24 +38,17 @@ Make sure you are in [this](./) directory.
     databricks workspace import ${SPARK_DL_WS}/init_spark_dl.sh --format AUTO --file $INIT_SRC
     ```
 
-6. Launch the cluster with the provided script. By default the script will create a cluster with 4 A10 worker nodes and 1 A10 driver node. (Note that the script uses **Azure instances** by default; change as needed).
+6. Launch the cluster with the provided script with the argument `aws` or `azure` based on your provider. 
     ```shell
     cd setup
     chmod +x start_cluster.sh
-    ./start_cluster.sh
+    ./start_cluster.sh aws  # or ./start_cluster.sh azure
     ```
-    OR, start the cluster from the Databricks UI:  
-
-    - Go to `Compute > Create compute` and set the desired cluster settings.
-        - Integration with Triton inference server uses stage-level scheduling (Spark>=3.4.0). Make sure to:
-            - use a cluster with GPU resources (for LLM examples, make sure the selected GPUs have sufficient RAM)
-            - set a value for `spark.executor.cores`
-            - ensure that `spark.executor.resource.gpu.amount` = 1
-    - Under `Advanced Options > Init Scripts`, upload the init script from your workspace.
-    - Under environment variables, set:
-        - `FRAMEWORK=torch` or `FRAMEWORK=tf` based on the notebook used.
-        - `TF_GPU_ALLOCATOR=cuda_malloc_async` to implicity release unused GPU memory in Tensorflow notebooks.
-
-    
+    By default, the cluster startup script will use the following instances:
+    - **Azure torch/tf**: 2x `Standard_NV36ads_A10_v5` workers (1 A10 GPU), 1x `Standard_NV36ads_A10_v5` driver (1 A10 GPU).
+    - **Azure vllm**: 2x `Standard_NV72ads_A10_v5` workers (2 A10 GPUs), 1x `Standard_NV36ads_A10_v5` driver (1 A10 GPU).
+    - **AWS torch/tf**: 2x `g5.4xlarge` (1 A10 GPU), 1x `g5.2xlarge` driver (1 A10 GPU).
+    - **AWS vllm**: 2x `g5.12xlarge` workers (4 A10 GPUs), 1x `g5.2xlarge` driver (1 A10 GPU).
+The vllm example requires multiple GPUs per node to demo tensor parallelism. Modify the script if you do not have these specific instance types. 
 
 7. Navigate to the notebook in your workspace and attach it to the cluster. The default cluster name is `spark-dl-inference-$FRAMEWORK`.  

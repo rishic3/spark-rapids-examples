@@ -120,7 +120,7 @@ ln -sf /usr/lib/x86_64-linux-gnu/libstdc++.so.6 ${CONDA_PREFIX}/lib/libstdc++.so
 ## Running on Cloud Environments
 
 We also provide instructions to run the notebooks on CSP Spark environments.  
-See the instructions for [Databricks](databricks/README.md) and [GCP Dataproc](dataproc/README.md).
+See the instructions for [Databricks AWS/Azure](databricks/README.md) and [GCP Dataproc](dataproc/README.md).
 
 ## Inference with Triton
 
