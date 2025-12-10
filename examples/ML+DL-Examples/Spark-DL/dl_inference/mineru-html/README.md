@@ -10,10 +10,13 @@ conda activate spark-miner
 
 ### 2. Install MinerU-HTML
 ```shell
-git clone https://github.com/opendatalab/MinerU-HTML.git
+# Clone from fork with vllm-kwargs branch
+git clone -b vllm-kwargs https://github.com/rishic3/MinerU-HTML.git
 cd MinerU-HTML
-pip install .
+pip install -e .
 ```
+
+**Note:** This uses a forked version with support for passing custom vLLM arguments (like `gpu_memory_utilization`, `max_model_len`, etc.) through the Dripper config via the `vllm_kwargs` parameter. 
 
 ### 3. Install Additional Dependencies
 ```shell
@@ -26,7 +29,7 @@ pip install -r requirements.txt
 
 Start a local Standalone cluster with a single GPU executor. 
 
-*Note:* Make sure your PySpark version (`conda list pyspark`) matches your Spark installation version.
+**Note:** Make sure your PySpark version (`conda list pyspark`) matches your Spark installation version.
 ```shell
 # Replace with your Spark installation path
 export SPARK_HOME=</path/to/spark>
